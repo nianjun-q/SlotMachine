@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>愛甲男子 — 台中高工校慶園遊會</title>
+<style>
+@import url('https://fonts.googleapis.com/css?family=Lobster');
+
+html, body { margin: 0; padding: 0; overflow: hidden; }
+
+/* =============================================
+   背景圖片路徑設定
+   ============================================= */
+#SlotMachine {
+  --red:      #ea5e56;
+  --dark-red: #8f4343;
+  --blue:     #09384e;
+  --white:    #f4f2e0;
+  --border:   5px;
+
+  width: 100vw;
+  height: 100vh;
+  min-width: 900px;
+  min-height: 700px;
+  background-color: #09384c;
+  background-image: url('background.png'); /*background.png*/
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  justify-content: center;
+  padding-top: 200px;
+  user-select: none;
+}
+
+/* ⚡ 調整：主畫面方向盤特效速度加快（0.4s），角度縮小（4deg） */
+.steering-effect {
+  animation: steeringMain 0.4s ease-in-out infinite;
+}
+
+@keyframes steeringMain {
+  0%   { transform: rotate(0deg); }
+  25%  { transform: rotate(-4deg); } /* 縮小左轉角度 */
+  50%  { transform: rotate(0deg); }
+  75%  { transform: rotate(4deg); }  /* 縮小右轉角度 */
+  100% { transform: rotate(0deg); }
+}
+
+/* badge (透明化，只保留排版空間，對齊原始專案的覆蓋) */
+#SlotMachine .badge {
+  position: relative;
+  margin-top: 30px;
+  margin-bottom: 200px;
+  display: flex;
+  justify-content: center;
+  width: 650px;
+  height: 260px;
+  border: 10px solid transparent;
+  border-radius: 50%;
+  background-color: transparent;
+  box-shadow: none;
+  text-align: center;
+}
+#SlotMachine .badge span { display: none; }
+
+/* body */
+#SlotMachine .body {
+  position: absolute;
+  padding: 50px;
+  border: var(--border) solid var(--blue);
+  border-radius: 50px;
+  background-color: var(--red);
+  box-shadow: 5px 5px 0 var(--white);
+}
+
+/* window */
+#SlotMachine .window {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: var(--border) solid var(--blue);
+  border-radius: 40px;
+  overflow: hidden;
+  transform: translateZ(0);
+}
+#SlotMachine .window::after,
+#SlotMachine .window::before {
+  position: absolute;
+  z-index: 5;
+  width: 100%;
+  height: 100%;
+  box-shadow: inset 0 10px 15px rgba(0,0,0,.2);
+  content: ' ';
+  pointer-events: none;
+}
+#SlotMachine .window::before {
+  box-shadow: inset 0 -10px 15px rgba(0,0,0,.2);
+}
+
+/* container inside window */
+#SlotMachine .window .container {
+  width: 450px;
+  height: 150px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  box-shadow: inset 0 15px 20px rgba(0,0,0,.3);
+  overflow: hidden;
+}
+
+/* fences */
+#SlotMachine .fence1,
+#SlotMachine .fence2 {
+  position: absolute;
+  z-index: 10;
+  left: 143px;
+  width: 10px;
+  height: 150px;
+  border: 3px solid var(--blue);
+  background-color: var(--red);
+}
+#SlotMachine .fence2 { left: 300px; }
+
+/* gift cell */
+.gift-style {
+  font-family: 'Lobster', cursive;
+  color: #09384e;
+  border-right: none;
+  border-left: none;
+  border-top: 1px solid #333;
+  border-bottom: 1px solid #333;
+  background-color: #f5f2e2;
+}
+
+/* gift-container (reel) */
+.gift-container {
+  perspective: 999999px;
+  user-select: none;
+  position: relative;
+  display: flex;
+  align-items: center;
+  transform-style: preserve-3d;
+}
+.gift-container * { box-sizing: border-box; }
+.gift-container .gift {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #333;
+  background-color: #fff;
+}
+/* flat mode */
+.gift-container.flat {
+  transform: rotateX(var(--currentDeg));
+}
+.gift-container.flat.autoTurn {
+  transition: var(--duration) ease-in-out;
+  transform: rotateX(var(--targetDeg));
+}
+
+/* handler / lever */
+#SlotMachine .handler {
+  position: absolute;
+  top: 50%;
+  right: -55px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 120;
+}
+#SlotMachine .handler.active .ball { top: 0; }
+#SlotMachine .handler.active .stick { top: -10px; height: 20px; }
+#SlotMachine .handler.disabled .ball { cursor: not-allowed; animation: none; }
+
+#SlotMachine .handler .stick {
+  position: absolute;
+  top: -90px;
+  right: -40px;
+  width: 20px;
+  height: 100px;
+  border: var(--border) solid var(--blue);
+  border-radius: 20px;
+  background-color: var(--red);
+  transition: 350ms;
+}
+#SlotMachine .handler .stick2 {
+  position: absolute;
+  top: -10px;
+  right: -45px;
+  width: 80px;
+  height: 20px;
+  border: var(--border) solid var(--blue);
+  border-radius: 0 20px 20px 0;
+  background-color: var(--red);
+}
+#SlotMachine .handler .ball {
+  position: absolute;
+  top: -155px;
+  right: -65px;
+  width: 70px;
+  height: 70px;
+  border: var(--border) solid var(--blue);
+  border-radius: 50%;
+  background-color: var(--red);
+  cursor: pointer;
+  transition: 500ms;
+  animation: ballLight 1s infinite alternate-reverse linear;
+}
+
+/* side-panel：左側紀錄 */
+#SlotMachine .side-panel {
+  position: fixed;
+  bottom: 24px;
+  left: 24px;
+  background: rgba(244,242,224,0.95);
+  border: solid 4px var(--blue);
+  border-radius: 20px;
+  padding: 14px 18px;
+  width: 250px;
+  max-height: 28vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 4px 4px 0 rgba(0,0,0,0.15);
+  z-index: 90;
+}
+#SlotMachine .side-panel h3 {
+  font-family: 'Lobster', 'Microsoft JhengHei', cursive;
+  color: var(--blue);
+  font-size: 20px;
+  margin: 0 0 8px 0;
+  border-bottom: 3px dashed var(--blue);
+  padding-bottom: 6px;
+  flex-shrink: 0;
+}
+#SlotMachine .side-list {
+  overflow-y: auto;
+  flex: 1;
+}
+#SlotMachine .side-list .result-row {
+  font-family: 'Lobster', 'Microsoft JhengHei', cursive;
+  color: var(--blue);
+  font-size: 18px;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(9,56,78,0.1);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+#SlotMachine .side-list .result-row:last-child { border-bottom: none; }
+#SlotMachine .side-list .round-label {
+  font-size: 12px;
+  color: #aaa;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+#SlotMachine .side-list .nums {
+  color: var(--red);
+  font-size: 22px;
+  letter-spacing: 2px;
+  flex-grow: 1;
+  margin-left: 5px;
+}
+#SlotMachine .side-list .tag {
+  font-size: 11px;
+  color: #fff;
+  background: #3498db;
+  border-radius: 6px;
+  padding: 2px 6px;
+  flex-shrink: 0;
+}
+#SlotMachine .side-list .tag.free { background: #e74c3c; font-weight: bold; }
+#SlotMachine .side-list .tag.discount67 { background: #e67e22; }
+#SlotMachine .side-list .tag.lose { background: #95a5a6; color: #fff; }
+
+#SlotMachine .placeholder {
+  font-family: 'Lobster', 'Microsoft JhengHei', cursive;
+  color: #bbb;
+  font-size: 15px;
+  text-align: center;
+  padding: 12px 0;
+}
+
+/* 機率面板（右側） */
+#SlotMachine .stats-panel {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: rgba(244,242,224,0.95);
+  border: solid 4px var(--blue);
+  border-radius: 20px;
+  padding: 14px 18px;
+  width: 280px;
+  max-height: 28vh;
+  box-shadow: 4px 4px 0 rgba(0,0,0,0.15);
+  z-index: 90;
+}
+#SlotMachine .stats-panel h3 {
+  font-family: 'Lobster', 'Microsoft JhengHei', cursive;
+  color: var(--blue);
+  font-size: 20px;
+  margin: 0 0 8px 0;
+  border-bottom: 3px dashed var(--blue);
+  padding-bottom: 6px;
+  text-align: center;
+}
+#SlotMachine .theory-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: 'Lobster', 'Microsoft JhengHei', cursive;
+}
+#SlotMachine .theory-table th, 
+#SlotMachine .theory-table td {
+  padding: 6px 2px;
+  text-align: center;
+  border-bottom: 1px solid rgba(9,56,78,0.1);
+}
+#SlotMachine .theory-table th {
+  color: var(--blue);
+  font-size: 13px;
+  font-weight: bold;
+}
+#SlotMachine .theory-table td.label {
+  color: var(--blue);
+  font-size: 13px;
+  text-align: left;
+}
+#SlotMachine .theory-table td.val {
+  color: var(--red);
+  font-size: 15px;
+  font-weight: bold;
+}
+#SlotMachine .theory-table tr:last-child td { border-bottom: none; }
+
+@keyframes ballLight {
+  from { border: solid 5px var(--white); box-shadow: 0 0 10px var(--white); }
+  to   { border: solid 5px var(--white); box-shadow: 0 0 30px var(--white); }
+}
+
+/* 特效遮罩與動畫 */
+#EffectOverlay {
+  position: fixed;
+  top: 0; left: 0; width: 100vw; height: 100vh;
+  background: rgba(0, 0, 0, 0.75);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+}
+#EffectOverlay.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+.effect-card {
+  background: #111;
+  border: 5px solid #fff;
+  border-radius: 30px;
+  padding: 40px 60px;
+  text-align: center;
+  box-shadow: 0 0 30px #fff, inset 0 0 20px rgba(255,255,255,0.2);
+  transform: scale(0.7);
+  transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  color: #fff;
+  font-family: 'Lobster', 'Microsoft JhengHei', cursive;
+}
+.effect-card.lose-card {
+  background: #1a1e21;
+  border: 5px solid #7f8c8d;
+  box-shadow: 0 0 20px #555;
+}
+#EffectOverlay.show .effect-card {
+  transform: scale(1);
+}
+
+/* ⚡ 調整：彈窗卡片特效速度加快（0.4s），角度縮小（5deg） */
+.card-steering-effect {
+  animation: steeringCard 0.4s ease-in-out infinite;
+}
+@keyframes steeringCard {
+  0%   { transform: scale(1) rotate(0deg); }
+  25%  { transform: scale(1) rotate(-5deg); } /* 縮小卡片左轉角度 */
+  50%  { transform: scale(1) rotate(0deg); }
+  75%  { transform: scale(1) rotate(5deg); }  /* 縮小卡片右轉角度 */
+  100% { transform: scale(1) rotate(0deg); }
+}
+
+.effect-title {
+  font-size: 48px;
+  margin-bottom: 10px;
+  letter-spacing: 2px;
+  text-shadow: 0 0 10px #fff, 0 0 20px #ff00de, 0 0 30px #ff00de;
+  animation: neonPulse 1.5s infinite alternate;
+}
+.effect-card.lose-card .effect-title {
+  text-shadow: 0 0 10px #7f8c8d;
+  color: #bdc3c7;
+  animation: none;
+}
+.effect-award {
+  font-size: 64px;
+  font-weight: bold;
+  color: #f1c40f;
+  margin: 20px 0;
+  text-shadow: 0 0 15px #f1c40f;
+}
+.effect-nums {
+  font-size: 32px;
+  color: #555;
+  background: #222;
+  padding: 5px 20px;
+  border-radius: 50px;
+  display: inline-block;
+}
+.effect-btn {
+  margin-top: 30px;
+  padding: 12px 35px;
+  font-size: 20px;
+  background: #ea5e56;
+  border: none;
+  color: white;
+  border-radius: 50px;
+  cursor: pointer;
+  box-shadow: 0 5px 15px rgba(234,94,86,0.4);
+  transition: 0.2s;
+}
+.effect-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(234,94,86,0.6);
+}
+.effect-card.lose-card .effect-btn {
+  background: #7f8c8d;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+
+/* 特效畫布 */
+#ConfettiCanvas {
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 100%;
+  pointer-events: none;
+  z-index: 201;
+}
+
+@keyframes neonPulse {
+  from { text-shadow: 0 0 10px #fff, 0 0 20px #ff00de, 0 0 30px #ff00de; }
+  to { text-shadow: 0 0 15px #fff, 0 0 30px #ff0099, 0 0 50px #ff0099; }
+}
+</style>
+</head>
+<body>
+<div id="SlotMachine">
+
+  <div class="badge"><span>SlotMachine</span></div>
+
+  <div class="body">
+    <div class="window">
+      <div class="container" id="reelContainer">
+        <div class="fence1"></div>
+        <div class="fence2"></div>
+      </div>
+    </div>
+    <div class="handler" id="handler">
+      <div class="stick2"></div>
+      <div class="stick"></div>
+      <div class="ball" id="ball"></div>
+    </div>
+  </div>
+
+  <div class="side-panel">
+    <h3>抽獎紀錄</h3>
+    <div class="side-list" id="sideList">
+      <div class="placeholder" id="sidePlaceholder">尚未抽獎</div>
+    </div>
+  </div>
+
+  <div class="stats-panel">
+    <h3>抽獎機率數據</h3>
+    <table class="theory-table">
+      <thead>
+        <tr>
+          <th style="text-align: left;">獎項</th>
+          <th>理論值</th>
+          <th>當下實際</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="label">三個相同 (免費)</td>
+          <td class="val" style="color:var(--blue);">1.0%</td>
+          <td class="val" id="statFree">0.0%</td>
+        </tr>
+        <tr>
+          <td class="label">連續出現67 (67折)</td>
+          <td class="val" style="color:var(--blue);">1.7%</td>
+          <td class="val" id="stat67">0.0%</td>
+        </tr>
+        <tr>
+          <td class="label">其餘兩同 (8折)</td>
+          <td class="val" style="color:var(--blue);">24.3%</td>
+          <td class="val" id="stat80">0.0%</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<div id="EffectOverlay">
+  <canvas id="ConfettiCanvas"></canvas>
+  <div class="effect-card" id="effectCard">
+    <div class="effect-title" id="overlayTitle">🎉 CONGRATULATIONS 🎉</div>
+    <div class="effect-award" id="overlayAward">免費</div>
+    <div class="effect-nums" id="overlayGifts">7 7 7</div>
+    <br>
+    <button class="effect-btn" id="overlayCloseBtn">太棒了！</button>
+  </div>
+</div>
+
+<script>
+/* ─────────────────────────────────────────
+   Gift (reel) — pure JS port of Gift.vue
+───────────────────────────────────────────*/
+class Gift {
+  constructor({ el, config }) {
+    this.el = el;
+    this.config = config;
+    this.isRunning = false;
+    this.currentDeg = 0;
+    this.targetDeg = 0;
+    this.giftsDeg = [];
+    this.onFinished = null;
+
+    this._buildDOM();
+    this._setConfig();
+    this._logGiftsDeg();
+  }
+
+  _buildDOM() {
+    const { gifts, style, width, height, fontSize } = this.config;
+    const rotate = 360 / gifts.length;
+    const translateZ = (height / 2) / Math.tan((rotate / 2 / 180) * Math.PI);
+    this.el.className = 'gift-container flat';
+    this.el.style.marginRight = width + 'px';
+
+    gifts.forEach((gift, i) => {
+      const div = document.createElement('div');
+      div.className = 'gift ' + (style || '');
+      div.style.width    = width  + 'px';
+      div.style.height   = height + 'px';
+      div.style.fontSize = fontSize + 'px';
+      div.style.transform = `rotateX(${rotate * i}deg) translateZ(${translateZ}px)`;
+      if (gift.type === 'text') div.textContent = gift.name;
+      this.el.appendChild(div);
+    });
+  }
+
+  _setConfig() {
+    const el = this.el;
+    el.style.setProperty('--duration',   this.config.duration + 'ms');
+    el.style.setProperty('--fontSize',   this.config.fontSize + 'px');
+    el.style.setProperty('--height',     this.config.height   + 'px');
+    el.style.setProperty('--width',      this.config.width    + 'px');
+    el.style.setProperty('--currentDeg', `-${this.currentDeg}deg`);
+  }
+
+  _logGiftsDeg() {
+    const rotate = 360 / this.config.gifts.length;
+    this.config.gifts.forEach((gift, i) => {
+      this.giftsDeg[i] = {
+        from: i === 0 ? 0 : this.giftsDeg[i-1].to,
+        to:   i === 0 ? rotate : this.giftsDeg[i-1].to + rotate,
+        name: gift.name
+      };
+    });
+  }
+
+  trigger() {
+    const rotate  = 360 / this.config.gifts.length;
+    let randomDeg = (Math.random() * 360) + (360 * 5);
+    randomDeg -= randomDeg % rotate;
+    this.targetDeg = randomDeg;
+
+    this.el.style.setProperty('--targetDeg', `-${this.targetDeg}deg`);
+    this.el.style.setProperty('--rollBackDeg', '1');
+    this.el.classList.add('autoTurn');
+    this.isRunning = true;
+
+    setTimeout(() => this._stop(), this.config.duration + 200);
+  }
+
+  _stop() {
+    this.currentDeg = this.targetDeg % 360;
+    this.el.style.setProperty('--currentDeg', `-${this.currentDeg}deg`);
+    this.el.classList.remove('autoTurn');
+    this.isRunning = false;
+    const rotate = 360 / this.config.gifts.length;
+    const endDeg = this.currentDeg + (rotate / 2);
+    let giftName = null;
+    this.giftsDeg.forEach(g => {
+      if (endDeg >= g.from && endDeg <= g.to) giftName = g.name;
+    });
+    if (this.onFinished) this.onFinished(giftName);
+  }
+}
+
+/* ─────────────────────────────────────────
+   SlotMachine Main Logic
+───────────────────────────────────────────*/
+const GIFT_CONFIG = [
+  { style:'gift-style', gifts: Array.from({length:10},(_,i)=>({type:'text',name:i})), duration:4000, fontSize:110, height:150, width:150 },
+  { style:'gift-style', gifts: Array.from({length:10},(_,i)=>({type:'text',name:i})), duration:5000, fontSize:110, height:150, width:150 },
+  { style:'gift-style', gifts: Array.from({length:10},(_,i)=>({type:'text',name:i})), duration:6000, fontSize:110, height:150, width:150 },
+];
+const container   = document.getElementById('reelContainer');
+const handler     = document.getElementById('handler');
+const ball        = document.getElementById('ball');
+const sideList    = document.getElementById('sideList');
+const sidePlaceholder = document.getElementById('sidePlaceholder');
+const slotMachineMain = document.getElementById('SlotMachine'); 
+
+// 特效元素
+const effectOverlay   = document.getElementById('EffectOverlay');
+const effectCard      = document.getElementById('effectCard');
+const overlayTitle    = document.getElementById('overlayTitle');
+const overlayAward    = document.getElementById('overlayAward');
+const overlayGifts    = document.getElementById('overlayGifts');
+const overlayCloseBtn = document.getElementById('overlayCloseBtn');
+
+// 機率計數器
+let disabled   = false;
+let resultLog  = [];
+let pendingRes = [];
+let totalSpins = 0;
+let countFree  = 0;
+let count67    = 0;
+let count80    = 0;
+
+// Build reels
+const gifts = GIFT_CONFIG.map((cfg, i) => {
+  const el = document.createElement('div');
+  container.insertBefore(el, container.querySelector('.fence1'));
+  const g = new Gift({ el, config: cfg });
+  g.onFinished = (val) => onFinished(val);
+  return g;
+});
+
+function turn() {
+  if (disabled) return;
+  disabled = true;
+  handler.classList.add('active', 'disabled');
+  setTimeout(() => handler.classList.remove('active'), 500);
+  pendingRes = [];
+  gifts.forEach(g => g.trigger());
+}
+
+function onFinished(val) {
+  pendingRes.push(val);
+  const stillRunning = gifts.filter(g => g.isRunning).length;
+  if (stillRunning === 0 && pendingRes.length === gifts.length) {
+    disabled = false;
+    handler.classList.remove('disabled');
+    const nums = [...pendingRes];
+    resultLog.push(nums);
+    pendingRes = [];
+    totalSpins++;
+    
+    const awardType = checkAward(nums);
+    if (awardType === '免費') countFree++;
+    else if (awardType === '67折') count67++;
+    else if (awardType === '8折') count80++;
+    
+    addToSideList(nums, totalSpins, awardType);
+    updateLiveStats();
+    
+    // ⚡ 觸發高頻率微角度方向盤動畫 (會一直轉，直到點擊「太棒了！」)
+    if (awardType === '67折') {
+      slotMachineMain.classList.add('steering-effect');
+      effectCard.classList.add('card-steering-effect');
+    }
+    
+    triggerWinEffect(awardType, nums.join(' '));
+  }
+}
+
+// 獎項判斷核心邏輯
+function checkAward(nums) {
+  const [a, b, c] = nums.map(Number);
+  const combinedStr = nums.map(String).join('');
+  
+  if (a === b && b === c) return '免費';
+  if (combinedStr.includes('67')) return '67折';
+  if (a === b || b === c || a === c) return '8折';
+  
+  return null;
+}
+
+function addToSideList(nums, round, awardType) {
+  if (sidePlaceholder) sidePlaceholder.remove();
+  
+  const row = document.createElement('div');
+  row.className = 'result-row';
+
+  const label = document.createElement('span');
+  label.className = 'round-label';
+  label.textContent = `第${round}次`;
+  
+  const numSpan = document.createElement('span');
+  numSpan.className = 'nums';
+  numSpan.textContent = nums.join(' ');
+
+  row.appendChild(label);
+  row.appendChild(numSpan);
+
+  const tag = document.createElement('span');
+  if (awardType) {
+    if (awardType === '免費') {
+      tag.className = 'tag free';
+      tag.textContent = '(免費)';
+    } else if (awardType === '67折') {
+      tag.className = 'tag discount67';
+      tag.textContent = '(67折)';
+    } else {
+      tag.className = 'tag';
+      tag.textContent = '(8折)';
+    }
+  } else {
+    tag.className = 'tag lose';
+    tag.textContent = '(銘謝惠顧)';
+  }
+  row.appendChild(tag);
+
+  sideList.insertBefore(row, sideList.firstChild);
+}
+
+function updateLiveStats() {
+  if (totalSpins === 0) return;
+  
+  const pFree = ((countFree / totalSpins) * 100).toFixed(1);
+  const p67   = ((count67 / totalSpins) * 100).toFixed(1);
+  const p80   = ((count80 / totalSpins) * 100).toFixed(1);
+  
+  document.getElementById('statFree').textContent = `${pFree}%`;
+  document.getElementById('stat67').textContent   = `${p67}%`;
+  document.getElementById('stat80').textContent   = `${p80}%`;
+}
+
+// ─────────────────────────────────────────
+// 🏆 彈窗特效控制
+// ─────────────────────────────────────────
+let effectAnimationId = null;
+let isLoseEffect = false;
+
+function triggerWinEffect(awardName, numStr) {
+  overlayGifts.textContent = numStr;
+  
+  effectCard.classList.remove('lose-card');
+  overlayTitle.textContent = '🎉 CONGRATULATIONS 🎉';
+  overlayCloseBtn.textContent = '太棒了！';
+  
+  if (awardName) {
+    isLoseEffect = false;
+    overlayAward.textContent = awardName;
+    if(awardName === '免費') {
+      overlayAward.style.color = '#e74c3c';
+      overlayAward.style.textShadow = '0 0 20px #e74c3c';
+    } else if(awardName === '67折') {
+      overlayAward.style.color = '#e67e22';
+      overlayAward.style.textShadow = '0 0 20px #e67e22';
+    } else {
+      overlayAward.style.color = '#f1c40f';
+      overlayAward.style.textShadow = '0 0 20px #f1c40f';
+    }
+  } else {
+    isLoseEffect = true;
+    effectCard.classList.add('lose-card');
+    overlayTitle.textContent = ' 📋 BOOOOOM... ';
+    overlayAward.textContent = '銘謝惠顧';
+    overlayAward.style.color = '#95a5a6';
+    overlayAward.style.textShadow = '0 0 10px #7f8c8d';
+    overlayCloseBtn.textContent = '再接再厲！';
+  }
+  
+  effectOverlay.classList.add('show');
+  initCanvasEffect();
+}
+
+// 點擊「太棒了！」時解除晃動
+overlayCloseBtn.addEventListener('click', () => {
+  effectOverlay.classList.remove('show');
+  
+  // ⚡ 停止高頻微角度方向盤動畫，回正畫面
+  slotMachineMain.classList.remove('steering-effect');
+  effectCard.classList.remove('card-steering-effect');
+  
+  if(effectAnimationId) {
+    cancelAnimationFrame(effectAnimationId);
+  }
+});
+
+ball.addEventListener('click', turn);
+
+// ─────────────────────────────────────────
+// 🎉 Canvas 雙模式特效
+// ─────────────────────────────────────────
+const canvas = document.getElementById('ConfettiCanvas');
+const ctx = canvas.getContext('2d');
+let particles = [];
+
+function initCanvasEffect() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  particles = [];
+  
+  if (!isLoseEffect) {
+    for (let i = 0; i < 150; i++) {
+      particles.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height - canvas.height,
+        r: Math.random() * 6 + 4,
+        d: Math.random() * canvas.height,
+        color: `hsl(${Math.random() * 360}, 100%, 60%)`,
+        tilt: Math.random() * 10 - 5,
+        tiltAngleIncremental: Math.random() * 0.07 + 0.02,
+        tiltAngle: 0
+      });
+    }
+    animateConfetti();
+  } else {
+    for (let i = 0; i < 80; i++) {
+      particles.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height - canvas.height,
+        length: Math.random() * 20 + 10,
+        speed: Math.random() * 8 + 4,
+        opacity: Math.random() * 0.4 + 0.2
+      });
+    }
+    animateRain();
+  }
+}
+
+function animateConfetti() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  particles.forEach((p, index) => {
+    p.tiltAngle += p.tiltAngleIncremental;
+    p.y += (Math.cos(p.d) + 3 + p.r / 2) / 2;
+    p.x += Math.sin(p.tiltAngle);
+    p.tilt = Math.sin(p.tiltAngle - index / 3) * 15;
+    
+    ctx.beginPath();
+    ctx.lineWidth = p.r;
+    ctx.strokeStyle = p.color;
+    ctx.moveTo(p.x + p.tilt + p.r / 2, p.y);
+    ctx.lineTo(p.x + p.tilt, p.y + p.tilt + p.r / 2);
+    ctx.stroke();
+    
+    if (p.y > canvas.height) {
+      particles[index] = {
+        x: Math.random() * canvas.width, y: -20, r: p.r, d: p.d, color: p.color,
+        tilt: p.tilt, tiltAngleIncremental: p.tiltAngleIncremental, tiltAngle: p.tiltAngle
+      };
+    }
+  });
+  effectAnimationId = requestAnimationFrame(animateConfetti);
+}
+
+function animateRain() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.lineWidth = 2;
+  particles.forEach((p, index) => {
+    ctx.beginPath();
+    ctx.strokeStyle = `rgba(149, 165, 166, ${p.opacity})`;
+    ctx.moveTo(p.x, p.y);
+    ctx.lineTo(p.x - 2, p.y + p.length);
+    ctx.stroke();
+    
+    p.y += p.speed;
+    p.x -= 0.5;
+    
+    if (p.y > canvas.height) {
+      particles[index] = {
+        x: Math.random() * canvas.width, y: -30,
+        length: p.length, speed: p.speed, opacity: p.opacity
+      };
+    }
+  });
+  effectAnimationId = requestAnimationFrame(animateRain);
+}
+
+window.addEventListener('resize', () => {
+  if (effectOverlay.classList.contains('show')) {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+});
+</script>
+</body>
+</html>
