@@ -500,7 +500,7 @@ html, body { margin: 0; padding: 0; overflow: hidden; }
         </tr>
         <tr>
           <td class="label">67 !!! (任選忘情水)</td>
-          <td class="val" style="color:var(--blue);">1.7%</td>
+          <td class="val" style="color:var(--blue);">2.8%</td>
           <td class="val" id="stat67">0.0%</td>
         </tr>
         <tr>
@@ -527,7 +527,7 @@ html, body { margin: 0; padding: 0; overflow: hidden; }
 
 <script>
 /* ─────────────────────────────────────────
-   Gift (reel) — pure JS port of Gift.vue
+    Gift (reel) — pure JS port of Gift.vue
 ───────────────────────────────────────────*/
 class Gift {
   constructor({ el, config }) {
@@ -613,7 +613,7 @@ class Gift {
 }
 
 /* ─────────────────────────────────────────
-   SlotMachine Main Logic
+    SlotMachine Main Logic
 ───────────────────────────────────────────*/
 const GIFT_CONFIG = [
   { style:'gift-style', gifts: Array.from({length:10},(_,i)=>({type:'text',name:i})), duration:4000, fontSize:110, height:150, width:150 },
@@ -675,14 +675,14 @@ function onFinished(val) {
     
     const awardType = checkAward(nums);
     if (awardType === '免費！！！') countFree++;
-    else if (awardType === '任選忘情水！！！') count67++;
+    else if (awardType === '67 !!!') count67++;
     else if (awardType === '折十元！！！') count80++;
     
     addToSideList(nums, totalSpins, awardType);
     updateLiveStats();
     
     // ⚡ 觸發高頻率微角度方向盤動畫 (會一直轉，直到點擊「太棒了！」)
-    if (awardType === '任選忘情水！！！') {
+    if (awardType === '67 !!!') {
       slotMachineMain.classList.add('steering-effect');
       effectCard.classList.add('card-steering-effect');
     }
@@ -696,8 +696,13 @@ function checkAward(nums) {
   const [a, b, c] = nums.map(Number);
   const combinedStr = nums.map(String).join('');
   
+  // 1. 三個相同 (免費)
   if (a === b && b === c) return '免費！！！';
-  if (combinedStr.includes('67')) return '任選忘情水！！！';
+  
+  // 2. 67 !!! (只要同時有 6 有 7 就算中獎，如 617, 676 等)
+  if (combinedStr.includes('6') && combinedStr.includes('7')) return '67 !!!';
+  
+  // 3. 其餘兩同 (折十元)
   if (a === b || b === c || a === c) return '折十元！！！';
   
   return null;
@@ -722,10 +727,10 @@ function addToSideList(nums, round, awardType) {
 
   const tag = document.createElement('span');
   if (awardType) {
-    if (awardType === '免費') {
+    if (awardType === '免費！！！') {
       tag.className = 'tag free';
       tag.textContent = '(免費)';
-    } else if (awardType === '任選忘情水！！！') {
+    } else if (awardType === '67 !!!') {
       tag.className = 'tag discount67';
       tag.textContent = '(任選忘情水)';
     } else {
@@ -769,10 +774,10 @@ function triggerWinEffect(awardName, numStr) {
   if (awardName) {
     isLoseEffect = false;
     overlayAward.textContent = awardName;
-    if(awardName === '免費') {
+    if(awardName === '免費！！！') {
       overlayAward.style.color = '#e74c3c';
       overlayAward.style.textShadow = '0 0 20px #e74c3c';
-    } else if(awardName === '任選忘情水！！！') {
+    } else if(awardName === '67 !!!') {
       overlayAward.style.color = '#e67e22';
       overlayAward.style.textShadow = '0 0 20px #e67e22';
     } else {
