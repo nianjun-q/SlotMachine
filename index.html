@@ -499,12 +499,12 @@ html, body { margin: 0; padding: 0; overflow: hidden; }
           <td class="val" id="statFree">0.0%</td>
         </tr>
         <tr>
-          <td class="label">連續出現67 (67折)</td>
+          <td class="label">67 !!! (任選忘情水)</td>
           <td class="val" style="color:var(--blue);">1.7%</td>
           <td class="val" id="stat67">0.0%</td>
         </tr>
         <tr>
-          <td class="label">其餘兩同 (8折)</td>
+          <td class="label">其餘兩同 (折拾元)</td>
           <td class="val" style="color:var(--blue);">24.3%</td>
           <td class="val" id="stat80">0.0%</td>
         </tr>
@@ -674,15 +674,15 @@ function onFinished(val) {
     totalSpins++;
     
     const awardType = checkAward(nums);
-    if (awardType === '免費') countFree++;
-    else if (awardType === '67折') count67++;
-    else if (awardType === '8折') count80++;
+    if (awardType === '免費！！！') countFree++;
+    else if (awardType === '任選忘情水！！！') count67++;
+    else if (awardType === '折十元！！！') count80++;
     
     addToSideList(nums, totalSpins, awardType);
     updateLiveStats();
     
     // ⚡ 觸發高頻率微角度方向盤動畫 (會一直轉，直到點擊「太棒了！」)
-    if (awardType === '67折') {
+    if (awardType === '任選忘情水！！！') {
       slotMachineMain.classList.add('steering-effect');
       effectCard.classList.add('card-steering-effect');
     }
@@ -696,9 +696,9 @@ function checkAward(nums) {
   const [a, b, c] = nums.map(Number);
   const combinedStr = nums.map(String).join('');
   
-  if (a === b && b === c) return '免費';
-  if (combinedStr.includes('67')) return '67折';
-  if (a === b || b === c || a === c) return '8折';
+  if (a === b && b === c) return '免費！！！';
+  if (combinedStr.includes('67')) return '任選忘情水！！！';
+  if (a === b || b === c || a === c) return '折十元！！！';
   
   return null;
 }
@@ -725,12 +725,12 @@ function addToSideList(nums, round, awardType) {
     if (awardType === '免費') {
       tag.className = 'tag free';
       tag.textContent = '(免費)';
-    } else if (awardType === '67折') {
+    } else if (awardType === '任選忘情水！！！') {
       tag.className = 'tag discount67';
-      tag.textContent = '(67折)';
+      tag.textContent = '(任選忘情水)';
     } else {
       tag.className = 'tag';
-      tag.textContent = '(8折)';
+      tag.textContent = '(折拾元)';
     }
   } else {
     tag.className = 'tag lose';
@@ -772,7 +772,7 @@ function triggerWinEffect(awardName, numStr) {
     if(awardName === '免費') {
       overlayAward.style.color = '#e74c3c';
       overlayAward.style.textShadow = '0 0 20px #e74c3c';
-    } else if(awardName === '67折') {
+    } else if(awardName === '任選忘情水！！！') {
       overlayAward.style.color = '#e67e22';
       overlayAward.style.textShadow = '0 0 20px #e67e22';
     } else {
